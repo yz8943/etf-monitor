@@ -126,7 +126,7 @@ def main():
     
     for code in etf_codes:
         code = code.strip()
-        premium = get_premium_rate(code)  # 你现有的函数
+        premium = get_etf_data(code)  # 你现有的函数
         
         if premium is None:
             continue
