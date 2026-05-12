@@ -10,22 +10,21 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-
+    environment: etfmonitor
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
-      - run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - run: python monitor.py
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run python monitor.py
         env:
           MAILS_DEV_API_KEY: ${{ secrets.MAILS_DEV_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
           ETF_CODES: ${{ secrets.ETF_CODES }}
           PRICE_THRESHOLD: ${{ secrets.PRICE_THRESHOLD }}
+        run: python monitor.py
+          
