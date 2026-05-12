@@ -7,7 +7,10 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import logging
 import time
+import json
+from datetime import datetime
 
+        
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -86,91 +89,80 @@ def send_email(subject, body, sender_email, recipient_email, mails_dev_api_key):
         logging.error(f"发送邮件时发生错误: {e}")
         return False
 
-def main():
-    logging.info("DEBUG: Starting main function and checking environment variables...")
-
-    # Log all environment variables for debugging
-    etf_codes = os.getenv("ETF_CODES")
-    logging.info(f"DEBUG: ETF_CODES env var = '{etf_codes}'")
-    PRICE_THRESHOLD = os.getenv("PRICE_THRESHOLD")
-    logging.info(f"DEBUG: PRICE_THRESHOLD env var = '{PRICE_THRESHOLD}'")
-    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-    logging.info(f"DEBUG: SENDER_EMAIL env var = '{SENDER_EMAIL}'")
-    RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
-    logging.info(f"DEBUG: RECIPIENT_EMAIL env var = '{RECIPIENT_EMAIL}'")
-    MAILS_DEV_API_KEY = os.getenv("MAILS_DEV_API_KEY")
-    logging.info(f"DEBUG: MAILS_DEV_API_KEY env var = '{MAILS_DEV_API_KEY}'")
-
-    # Read and process ETF_CODES
-    etf_codes_str = os.getenv("ETF_CODES", "159501,513500")
-    logging.info(f"DEBUG: ETF_CODES env var (processed) = '{etf_codes_str}'")
-    etf_codes = [code.strip() for code in etf_codes_str.split(',') if code.strip()]
-    if not etf_codes:
-        logging.warning("ETF_CODES is empty or invalid. Using default: '159501,513500'")
-        etf_codes = ["159501", "513500"]
-    logging.info(f"DEBUG: etf_codes list = {etf_codes}")
-
-    # Read and process PRICE_THRESHOLD
-    price_threshold_str = os.getenv("PRICE_THRESHOLD", "3.0")
-    logging.info(f"DEBUG: PRICE_THRESHOLD env var (processed) = '{price_threshold_str}'")
+def load_premium_history():
+    """加载历史溢价率记录"""
     try:
-        price_threshold = float(price_threshold_str)
-        logging.info(f"DEBUG: price_threshold converted to {price_threshold}")
-    except ValueError as e:
-        logging.error(f"ERROR: Failed to convert PRICE_THRESHOLD '{price_threshold_str}' to float: {e}")
-        price_threshold = 3.0
-        logging.info(f"DEBUG: Using default price_threshold = {price_threshold}")
+        with open('premium_history.json', 'r') as f:
+            return json.load(f)
+    except:
+        return {}
 
-    # Read other email related environment variables
-    sender_email = os.getenv("SENDER_EMAIL")
-    recipient_email = os.getenv("RECIPIENT_EMAIL")
-    mails_dev_api_key = os.getenv("MAILS_DEV_API_KEY")
+def save_premium_history(data):
+    """保存历史溢价率记录"""
+    with open('premium_history.json', 'w') as f:
+        json.dump(data, f, indent=2)
 
-    if not sender_email:
-        logging.error("SENDER_EMAIL environment variable is not set. Exiting.")
-        return
-    if not recipient_email:
-        logging.error("RECIPIENT_EMAIL environment variable is not set. Exiting.")
-        return
-    if not mails_dev_api_key:
-        logging.error("MAILS_DEV_API_KEY environment variable is not set. Exiting.")
-        return
-
-    logging.info(f"DEBUG: SENDER_EMAIL = {sender_email}")
-    logging.info(f"DEBUG: RECIPIENT_EMAIL = {recipient_email}")
-    logging.info(f"DEBUG: MAILS_DEV_API_KEY is set (value not logged for security)")
-
-    all_etf_data = {}
+def main():
+    current_time = datetime.now()
+    hour = current_time.hour
+    minute = current_time.minute
+    today = current_time.strftime("%Y-%m-%d")
     
-    # 模拟在非工作时间（如凌晨）不进行详细溢价率检查和邮件发送
-    current_time = time.localtime()
-    hour = current_time.tm_hour
+    history = load_premium_history()
     
-    # 定义工作时间 (例如 9:00 - 16:00)
-    is_trading_hours = 9 <= hour < 16
-
+    # 检查是否需要重置当天计数（早上9:40）
+    last_reset = history.get("last_reset_date")
+    if last_reset != today:
+        history["daily_emails_sent"] = 0
+        history["last_reset_date"] = today
+    
+    etf_codes = os.getenv("ETF_CODES", "159501,513500").split(",")
+    price_threshold = float(os.getenv("PRICE_THRESHOLD", "3.0"))
+    
+    emails_to_send = []
+    
     for code in etf_codes:
-        logging.info(f"正在获取ETF {code}的数据...")
-        premium_rate = get_etf_data(code)
-        if premium_rate is not None:
-            all_etf_data[code] = premium_rate
-            logging.info(f"ETF {code} 溢价率: {premium_rate}%")
-            if is_trading_hours and premium_rate < price_threshold:
-                subject = f"ETF {code} 溢价率提醒: {premium_rate}%"
-                body = f"ETF {code} 当前溢价率: {premium_rate}%，已低于设定的 {price_threshold}%。"
-                send_email(subject, body, sender_email, recipient_email, mails_dev_api_key)
-        time.sleep(2) # 避免请求过快
-
-    # 每天早上9:40发送数据汇总 (如果满足条件，且不是在其他调度运行的通知邮件)
-    if current_time.tm_min == 40 and hour == 9:
-        summary_body = "<h3>ETF 溢价率每日汇总</h3>"
-        if all_etf_data:
-            for code, rate in all_etf_data.items():
-                summary_body += f"<p>ETF {code}: {rate}%</p>"
-        else:
-            summary_body += "<p>未能获取任何ETF数据。</p>"
+        code = code.strip()
+        premium = get_premium_rate(code)  # 你现有的函数
         
-        send_email("ETF 溢价率每日汇总", summary_body, sender_email, recipient_email, mails_dev_api_key)
+        if premium is None:
+            continue
+        
+        # 9:40 固定发送汇总邮件
+        if hour == 9 and minute == 40:
+            emails_to_send.append({
+                "type": "summary",
+                "code": code,
+                "premium": premium,
+                "message": f"{code} 当前溢价率: {premium:.2f}%"
+            })
+        # 其他时间：只有当溢价 < 3% 且 < 上次溢价时才发
+        elif premium < price_threshold and history["daily_emails_sent"] < 2:
+            last_premium = history.get(code, {}).get("last_premium")
+            if last_premium is None or premium < last_premium:
+                emails_to_send.append({
+                    "type": "alert",
+                    "code": code,
+                    "premium": premium,
+                    "message": f"{code} 溢价下降到 {premium:.2f}%，低于 {price_threshold}% 阈值，强烈推荐！"
+                })
+    
+    # 发送邮件
+    if emails_to_send:
+        send_email(emails_to_send)
+        history["daily_emails_sent"] += 1
+    
+    # 更新历史记录
+    for code in etf_codes:
+        code = code.strip()
+        premium = get_premium_rate(code)
+        if premium is not None:
+            if code not in history:
+                history[code] = {}
+            history[code]["last_premium"] = premium
+            history[code]["last_update"] = today
+    
+    save_premium_history(history)
         
 if __name__ == "__main__":
     main()
