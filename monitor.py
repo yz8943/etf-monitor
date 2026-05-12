@@ -19,43 +19,45 @@ load_dotenv()
 
 def get_etf_data(etf_code):
     url = f"https://www.wise-etf.com/etf/{etf_code}"
+
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        "User-Agent": "Mozilla/5.0"
     }
+
     try:
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'lxml')
 
-        # 尝试查找溢价率
-        premium_rate_element = soup.find('td', text='溢价率：').find_next_sibling('td')
-        if premium_rate_element:
-            premium_rate_text = premium_rate_element.get_text(strip=True).replace('%', '')
-            try:
-                premium_rate = float(premium_rate_text)
-                return premium_rate
-            except ValueError:
-                logging.error(f"无法解析ETF {etf_code}的溢价率: {premium_rate_text}")
-                return None
-        else:
-            logging.warning(f"未找到ETF {etf_code}的溢价率信息，尝试查找其他方式。")
-            # 备用查找方式 (如果网站结构变化)
-            all_tds = soup.find_all('td')
-            for i in range(len(all_tds_)):
-                if '溢价率' in all_tds[i].text and i + 1 < len(all_tds):
-                    premium_rate_text = all_tds[i+1].get_text(strip=True).replace('%', '')
-                    try:
-                        premium_rate = float(premium_rate_text)
-                        return premium_rate
-                    except ValueError:
-                        logging.error(f"备用查找: 无法解析ETF {etf_code}的溢价率: {premium_rate_text}")
-                        return None
-            logging.error(f"未能找到ETF {etf_code}的溢价率信息。")
-            return None
+        soup = BeautifulSoup(response.text, "html.parser")
 
-    except requests.exceptions.RequestException as e:
-        logging.error(f"请求ETF {etf_code}失败: {e}")
+        # 调试：保存页面
+        logging.info(f"ETF {etf_code} 页面长度: {len(response.text)}")
+
+        td = soup.find('td', string='溢价率：')
+
+        if td:
+            next_td = td.find_next_sibling('td')
+
+            if next_td:
+                text = next_td.get_text(strip=True).replace('%', '')
+
+                try:
+                    return float(text)
+                except ValueError:
+                    logging.error(f"无法转换溢价率: {text}")
+                    return None
+
+        logging.error(f"未找到 ETF {etf_code} 溢价率")
+
+        # 输出部分 HTML 调试
+        logging.info(response.text[:1000])
+
         return None
+
+    except Exception as e:
+        logging.error(f"获取ETF {etf_code}失败: {e}")
+        return None
+            
 
 def send_email(subject, body, sender_email, recipient_email, mails_dev_api_key):
     try:
