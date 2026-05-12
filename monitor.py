@@ -133,7 +133,13 @@ def main():
     
     # 发送邮件
     if emails_to_send:
-        send_email(emails_to_send)
+        sender_email = os.getenv("SENDER_EMAIL")
+        recipient_email = os.getenv("RECIPIENT_EMAIL")
+        api_key = os.getenv("MAILS_DEV_API_KEY")
+
+        body = "<br>".join(e["message"] for e in emails_to_send)
+        subject = "ETF 溢价率提醒" if any(e["type"] == "alert" for e in emails_to_send) else "ETF 每日汇总"
+        send_email(subject, body, sender_email, recipient_email, api_key)
         history["daily_emails_sent"] += 1
     
     # 更新历史记录
