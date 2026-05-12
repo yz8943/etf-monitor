@@ -38,14 +38,14 @@ def get_etf_data(etf_code):
 def send_email(subject, body, sender_email, recipient_email, mails_dev_api_key):
     try:
         response = requests.post(
-            "https://api.mails.dev/api/send",
+            "https://api.mails.dev/v1/send",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {mails_dev_api_key}"
             },
             json={
                 "from": sender_email,
-                "to": recipient_email,
+                "to": [recipient_email],
                 "subject": subject,
                 "text": body,
                 "html": body
