@@ -1,0 +1,40 @@
+name: ETF Monitor
+
+on: 
+  workflow_dispatch:
+  schedule:
+    # 每天工作日 9:00 - 16:00, 每 10 分钟运行一次 (UTC 01:00 - 08:00, 即北京时间 09:00 - 16:00)
+    - cron: '*/10 1-8 * * 1-5' 
+    # 每天工作日 9:40 运行一次数据汇总任务 (UTC 01:40, 即北京时间 09:40)
+    - cron: '40 1 * * 1-5'
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r etf-monitor/requirements.txt
+
+    - name: Run ETF Monitor (Regular Check)
+      if: github.event.schedule == '*/10 1-8 * * 1-5'
+      env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        MAIL_API_KEY: ${{ secrets.MAIL_API_KEY }}
+        RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+      run: python etf-monitor/monitor.py
+
+    - name: Run ETF Monitor (Daily Summary)
+      if: github.event.schedule == '40 1 * * 1-5'
+      env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        MAIL_API_KEY: ${{ secrets.MAIL_API_KEY }}
+        RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+      run: python etf-monitor/monitor.py summary
