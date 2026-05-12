@@ -117,8 +117,10 @@ def main():
         history["last_reset_date"] = today
     
     etf_codes = os.getenv("ETF_CODES", "159501,513500").split(",")
-    THRESHOLD= os.getenv("PRICE_THRESHOLD", "3.0")
-    price_threshold = float(THRESHOLD)
+    threshold = os.getenv("PRICE_THRESHOLD")
+    if not threshold:
+        threshold = "3.0"
+    price_threshold = float(threshold)
     
     emails_to_send = []
     
