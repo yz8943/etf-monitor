@@ -160,7 +160,7 @@ def main():
     # 更新历史记录
     for code in etf_codes:
         code = code.strip()
-        premium = get_premium_rate(code)
+        premium = get_etf_data(code)
         if premium is not None:
             if code not in history:
                 history[code] = {}
