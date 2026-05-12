@@ -87,16 +87,53 @@ def send_email(subject, body, sender_email, recipient_email, mails_dev_api_key):
         return False
 
 def main():
+    logging.info("DEBUG: Starting main function and checking environment variables...")
+
+    # Log all environment variables for debugging
+    logging.info(f"DEBUG: ETF_CODES env var = '{os.getenv("ETF_CODES")}'")
+    logging.info(f"DEBUG: PRICE_THRESHOLD env var = '{os.getenv("PRICE_THRESHOLD")}'")
+    logging.info(f"DEBUG: SENDER_EMAIL env var = '{os.getenv("SENDER_EMAIL")}'")
+    logging.info(f"DEBUG: RECIPIENT_EMAIL env var = '{os.getenv("RECIPIENT_EMAIL")}'")
+    logging.info(f"DEBUG: MAILS_DEV_API_KEY env var = '{os.getenv("MAILS_DEV_API_KEY")}'")
+
+    # Read and process ETF_CODES
     etf_codes_str = os.getenv("ETF_CODES", "159501,513500")
+    logging.info(f"DEBUG: ETF_CODES env var (processed) = '{etf_codes_str}'")
     etf_codes = [code.strip() for code in etf_codes_str.split(',') if code.strip()]
-    price_threshold = float(os.getenv("PRICE_THRESHOLD", "3.0")) # 默认为3%
+    if not etf_codes:
+        logging.warning("ETF_CODES is empty or invalid. Using default: '159501,513500'")
+        etf_codes = ["159501", "513500"]
+    logging.info(f"DEBUG: etf_codes list = {etf_codes}")
+
+    # Read and process PRICE_THRESHOLD
+    price_threshold_str = os.getenv("PRICE_THRESHOLD", "3.0")
+    logging.info(f"DEBUG: PRICE_THRESHOLD env var (processed) = '{price_threshold_str}'")
+    try:
+        price_threshold = float(price_threshold_str)
+        logging.info(f"DEBUG: price_threshold converted to {price_threshold}")
+    except ValueError as e:
+        logging.error(f"ERROR: Failed to convert PRICE_THRESHOLD '{price_threshold_str}' to float: {e}")
+        price_threshold = 3.0
+        logging.info(f"DEBUG: Using default price_threshold = {price_threshold}")
+
+    # Read other email related environment variables
     sender_email = os.getenv("SENDER_EMAIL")
     recipient_email = os.getenv("RECIPIENT_EMAIL")
     mails_dev_api_key = os.getenv("MAILS_DEV_API_KEY")
 
-    if not all([sender_email, recipient_email, mails_dev_api_key]):
-        logging.error("请设置SENDER_EMAIL, RECIPIENT_EMAIL, MAILS_DEV_API_KEY环境变量!")
+    if not sender_email:
+        logging.error("SENDER_EMAIL environment variable is not set. Exiting.")
         return
+    if not recipient_email:
+        logging.error("RECIPIENT_EMAIL environment variable is not set. Exiting.")
+        return
+    if not mails_dev_api_key:
+        logging.error("MAILS_DEV_API_KEY environment variable is not set. Exiting.")
+        return
+
+    logging.info(f"DEBUG: SENDER_EMAIL = {sender_email}")
+    logging.info(f"DEBUG: RECIPIENT_EMAIL = {recipient_email}")
+    logging.info(f"DEBUG: MAILS_DEV_API_KEY is set (value not logged for security)")
 
     all_etf_data = {}
     
