@@ -18,40 +18,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 def get_etf_data(etf_code):
-    url = f"https://www.wise-etf.com/etf/{etf_code}"
-
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    url = "https://www.wise-etf.com/api/etfs"
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, "html.parser")
+        for etf in response.json().get("data", []):
+            if etf["code"] == etf_code:
+                premium = etf["premium"]
+                logging.info(f"ETF {etf_code} ({etf['name']}) 溢价率: {premium}%")
+                return float(premium)
 
-        # 调试：保存页面
-        logging.info(f"ETF {etf_code} 页面长度: {len(response.text)}")
-
-        td = soup.find('td', string='溢价率：')
-
-        if td:
-            next_td = td.find_next_sibling('td')
-
-            if next_td:
-                text = next_td.get_text(strip=True).replace('%', '')
-
-                try:
-                    return float(text)
-                except ValueError:
-                    logging.error(f"无法转换溢价率: {text}")
-                    return None
-
-        logging.error(f"未找到 ETF {etf_code} 溢价率")
-
-        # 输出部分 HTML 调试
-        logging.info(response.text[:1000])
-
+        logging.error(f"未找到 ETF {etf_code}")
         return None
 
     except Exception as e:
