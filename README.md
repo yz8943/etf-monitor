@@ -1,89 +1,81 @@
 # ETF Monitor
 
-这是一个用于监控 ETF 溢价率并发送邮件通知的系统。系统会在工作日每 10 分钟检查一次指定 ETF 的溢价率，并在溢价率低于 3% 时发送邮件提醒。此外，系统还会在每个工作日早上 9:40 发送一份当日 ETF 数据汇总邮件。
+这是一个用于监控ETF溢价率的系统。它会定期爬取指定ETF的溢价率，当溢价率低于设定的阈值时，通过邮件发送提醒。系统还会每天早上9:40发送当日ETF溢价率的汇总邮件。
 
 ## 功能特点
 
-- **实时监控**：每 10 分钟查询一次 ETF 溢价率。
-- **邮件通知**：溢价率低于阈值时即时提醒，每日汇总报告。
-- **GitHub Actions 部署**：无需外部服务器，利用 GitHub Actions 自动运行。
-- **可配置**：通过环境变量轻松配置监控 ETF 列表、邮件发送设置等。
+- **ETF数据抓取**: 从`wise-etf.com`抓取ETF的实时溢价率数据。
+- **溢价率提醒**: 当ETF溢价率低于设定阈值时，自动发送邮件提醒。
+- **每日数据汇总**: 每天早上9:40发送一次当日ETF溢价率的汇总邮件。
+- **GitHub Actions集成**: 通过GitHub Actions实现自动化定时运行。
 
-## 监控的 ETF
+## 监控的ETF
 
-- 159501 (纳指ETF)
-- 513500 (半导体ETF)
+您可以配置要监控的ETF代码。
 
-## 数据源
+## 技术栈
 
-数据来源于 [wise-etf.com](https://www.wise-etf.com/etf).
+- Python 3.9+
+- `requests` 用于HTTP请求
+- `beautifulsoup4` 和 `lxml` 用于HTML解析
+- `python-dotenv` 用于本地环境变量管理
+- `mails.dev` API 用于邮件发送
 
-## 安装指南
+## 部署与配置
 
-1. **克隆仓库**：
-   ```bash
-   git clone https://github.com/yz8943/etf-monitor.git
-   cd etf-monitor
-   ```
+### 1. 克隆仓库
 
-2. **创建虚拟环境 (可选但推荐)**：
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # macOS/Linux
-   # venv\Scripts\activate  # Windows
-   ```
-
-3. **安装依赖**：
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **设置环境变量**：
-   在 GitHub 仓库的 `Settings` -> `Secrets` -> `Actions` 中添加以下 Secrets：
-   - `SENDER_EMAIL`: 发送邮件的邮箱地址 (例如: `kerry@mails.dev`)
-   - `MAIL_API_KEY`: mails.dev 生成的 API Key (例如: `mk_1562057e9e7f4e94867ff171c72cda3d`)
-   - `RECIPIENT_EMAIL`: 接收通知的邮箱地址 (例如: `yangzhi72@126.com`)
-
-   或者在本地测试时，可以创建一个 `.env` 文件 (请参考 `config.example.env`)，内容如下：
-   ```
-   SENDER_EMAIL=your_sender_email@example.com
-   MAIL_API_KEY=your_mails_dev_api_key
-   RECIPIENT_EMAIL=your_recipient_email@example.com
-   ```
-
-## 使用说明
-
-本项目主要通过 GitHub Actions 自动运行。您不需要手动执行脚本。配置好 GitHub Actions Secrets 后，它将按照预定的时间表自动工作。
-
-如果您想在本地测试或手动运行，可以使用以下命令：
-
-- **运行常规监控**：
-  ```bash
-  python monitor.py
-  ```
-
-- **生成每日汇总**：
-  ```bash
-  python monitor.py summary
-  ```
-
-## 自定义监控 ETF
-
-您可以通过修改 `monitor.py` 文件中的 `ETFS` 字典来添加或删除监控的 ETF：
-
-```python
-ETFS = {
-    "159501": "纳指ETF",
-    "513500": "半导体ETF",
-    # "您的ETF代码": "ETF名称",
-}
+```bash
+git clone https://github.com/your-username/etf-monitor.git
+cd etf-monitor
 ```
 
-## 日志
+### 2. 设置环境变量
 
-脚本运行日志将记录到 `etf_monitor.log` 文件中。
+本系统依赖以下环境变量来运行。您可以在GitHub Actions中配置Secrets，或者在本地创建一个`.env`文件进行测试。
+
+- `MAILS_DEV_API_KEY`: mails.dev的API Key，用于发送邮件。
+- `SENDER_EMAIL`: 发件人邮箱地址。
+- `RECIPIENT_EMAIL`: 收件人邮箱地址。
+- `ETF_CODES`: 以逗号分隔的ETF代码列表，例如：`159501,513500`。 (可选，默认监控159501, 513500)
+- `PRICE_THRESHOLD`: 溢价率提醒的阈值，例如：`3.0` 表示3%。 (可选，默认为3.0)
+
+#### `.env` 文件示例 (`config.example.env`)
+
+```
+MAILS_DEV_API_KEY="your_mails_dev_api_key"
+SENDER_EMAIL="your_sender_email@example.com"
+RECIPIENT_EMAIL="your_recipient_email@example.com"
+ETF_CODES="159501,513500"
+PRICE_THRESHOLD="3.0"
+```
+
+### 3. 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. 本地运行 (测试)
+
+```bash
+python monitor.py
+```
+
+### 5. GitHub Actions 部署
+
+1. 在您的GitHub仓库中，前往 `Settings` -> `Secrets` -> `Actions`。
+2. 添加以下Secrets：
+   - `MAILS_DEV_API_KEY`
+   - `SENDER_EMAIL`
+   - `RECIPIENT_EMAIL`
+   - `ETF_CODES` (可选)
+   - `PRICE_THRESHOLD` (可选)
+3. 确保 `.github/workflows/etf-monitor.yml` 文件存在于您的仓库中。
+4. GitHub Actions将根据`.github/workflows/etf-monitor.yml`中定义的cron表达式自动运行您的监控脚本。
 
 ## 注意事项
 
-- 请确保您的 `MAIL_API_KEY` 是有效的，并且 `SENDER_EMAIL` 在 mails.dev 中已验证。
-- GitHub Actions 的 `cron` 表达式以 UTC 时间为准。请根据您的需要调整。
+- 邮件发送频率受`mails.dev`服务限制，请查阅其文档。
+- ETF数据抓取频率不宜过高，以免被目标网站封禁IP。
+- 本脚本仅作为示例，实际使用请根据您的需求进行调整和优化。
