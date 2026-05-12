@@ -93,16 +93,19 @@ def main():
     if not threshold:
         threshold = "3.0"
     price_threshold = float(threshold)
-    
+
     emails_to_send = []
-    
+    premiums = {}
+
     for code in etf_codes:
         code = code.strip()
-        premium = get_etf_data(code)  # 你现有的函数
-        
+        premium = get_etf_data(code)
+
         if premium is None:
             continue
-        
+
+        premiums[code] = premium
+
         # 9:40 固定发送汇总邮件
         if hour == 9 and minute == 40:
             emails_to_send.append({
@@ -121,7 +124,7 @@ def main():
                     "premium": premium,
                     "message": f"{code} 溢价下降到 {premium:.2f}%，低于 {price_threshold}% 阈值，强烈推荐！"
                 })
-    
+
     # 发送邮件
     if emails_to_send:
         sender_email = os.getenv("SENDER_EMAIL")
@@ -132,17 +135,14 @@ def main():
         subject = "ETF 溢价率提醒" if any(e["type"] == "alert" for e in emails_to_send) else "ETF 每日汇总"
         send_email(subject, body, sender_email, recipient_email, api_key)
         history["daily_emails_sent"] += 1
-    
-    # 更新历史记录
-    for code in etf_codes:
-        code = code.strip()
-        premium = get_etf_data(code)
-        if premium is not None:
-            if code not in history:
-                history[code] = {}
-            history[code]["last_premium"] = premium
-            history[code]["last_update"] = today
-    
+
+    # 更新历史记录（复用已获取的数据）
+    for code, premium in premiums.items():
+        if code not in history:
+            history[code] = {}
+        history[code]["last_premium"] = premium
+        history[code]["last_update"] = today
+
     save_premium_history(history)
         
 if __name__ == "__main__":
