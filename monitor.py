@@ -90,11 +90,16 @@ def main():
     logging.info("DEBUG: Starting main function and checking environment variables...")
 
     # Log all environment variables for debugging
-    logging.info(f"DEBUG: ETF_CODES env var = '{os.getenv("ETF_CODES")}'")
-    logging.info(f"DEBUG: PRICE_THRESHOLD env var = '{os.getenv("PRICE_THRESHOLD")}'")
-    logging.info(f"DEBUG: SENDER_EMAIL env var = '{os.getenv("SENDER_EMAIL")}'")
-    logging.info(f"DEBUG: RECIPIENT_EMAIL env var = '{os.getenv("RECIPIENT_EMAIL")}'")
-    logging.info(f"DEBUG: MAILS_DEV_API_KEY env var = '{os.getenv("MAILS_DEV_API_KEY")}'")
+    etf_codes = os.getenv("ETF_CODES")
+    logging.info(f"DEBUG: ETF_CODES env var = '{etf_codes}'")
+    PRICE_THRESHOLD = os.getenv("PRICE_THRESHOLD")
+    logging.info(f"DEBUG: PRICE_THRESHOLD env var = '{PRICE_THRESHOLD}'")
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+    logging.info(f"DEBUG: SENDER_EMAIL env var = '{SENDER_EMAIL}'")
+    RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
+    logging.info(f"DEBUG: RECIPIENT_EMAIL env var = '{RECIPIENT_EMAIL}'")
+    MAILS_DEV_API_KEY = os.getenv("MAILS_DEV_API_KEY")
+    logging.info(f"DEBUG: MAILS_DEV_API_KEY env var = '{MAILS_DEV_API_KEY}'")
 
     # Read and process ETF_CODES
     etf_codes_str = os.getenv("ETF_CODES", "159501,513500")
