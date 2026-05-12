@@ -1,11 +1,8 @@
 
 import requests
 import os
-import smtplib
-from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import logging
-import time
 import json
 from datetime import datetime
 
@@ -40,21 +37,15 @@ def get_etf_data(etf_code):
 
 def send_email(subject, body, sender_email, recipient_email, mails_dev_api_key):
     try:
-        msg = MIMEText(body, 'html', 'utf-8')
-        msg['Subject'] = subject
-        msg['From'] = sender_email
-        msg['To'] = recipient_email
-
-        # 使用mails.dev API发送邮件
         response = requests.post(
-            "https://api.mails.dev/api/v1/emails/send",
+            "https://api.mails.dev/api/send",
             headers={
                 "Content-Type": "application/json",
-                "x-api-key": mails_dev_api_key
+                "Authorization": f"Bearer {mails_dev_api_key}"
             },
             json={
                 "from": sender_email,
-                "to": [recipient_email],
+                "to": recipient_email,
                 "subject": subject,
                 "text": body,
                 "html": body
