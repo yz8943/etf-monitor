@@ -1,11 +1,12 @@
 # ETF Monitor
 
-监控 ETF 溢价率的自动化工具。从 wise-etf.com 获取实时数据，当溢价率低于阈值时通过邮件发送提醒，每天早上 9:40 发送汇总邮件。
+监控 ETF 溢价率的自动化工具。优先从 spxnasdaq.top 获取实时数据（含代码、名称、规模、最新价、净值、溢价率、当日涨跌），当溢价率低于阈值时通过邮件发送 HTML 表格格式的提醒，每天早上 9:40 发送汇总邮件。
 
 ## 功能
 
-- 从 wise-etf.com `/api/etfs` 获取实时溢价率
-- 溢价率低于阈值时自动发邮件提醒
+- 优先从 spxnasdaq.top 抓取 ETF 数据（失败自动回退到 wise-etf.com）
+- 邮件以 HTML 表格展示：代码、名称、规模、最新价、净值、溢价率、当日涨跌
+- 溢价率低于阈值时自动发邮件提醒（溢价率低于 3% 显示绿色，高于显示红色）
 - 每天早上 9:40 发送当日汇总
 - GitHub Actions 定时运行（每 10 分钟检查一次）
 
@@ -55,8 +56,15 @@ python monitor.py
 ## 项目结构
 
 ```
-monitor.py          # 主程序
-test_email.py       # 邮件发送测试
-requirements.txt    # Python 依赖
+monitor.py           # 主程序（数据获取 + 邮件推送）
+test_email.py        # 邮件发送测试
+requirements.txt     # Python 依赖（requests, python-dotenv, beautifulsoup4）
 premium_history.json # 溢价率历史记录（自动生成）
 ```
+
+## 数据源
+
+| 优先级 | 来源 | 获取方式 | 字段 |
+|---|---|---|---|
+| 1 | spxnasdaq.top | HTML 表格解析（BeautifulSoup） | 代码、名称、规模、最新价、净值、溢价率、当日涨跌 |
+| 2 | wise-etf.com | `/api/etfs` JSON API | 代码、名称、溢价率（回退源，字段较少） |
