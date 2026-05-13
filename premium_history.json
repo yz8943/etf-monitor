@@ -1,6 +1,12 @@
 {
-  "159501": {"last_premium": null, "last_update": null},
-  "513500": {"last_premium": null, "last_update": null},
-  "daily_emails_sent": 0,
-  "last_reset_date": null
+  "159501": {
+    "last_premium": 2.92,
+    "last_update": "2026-05-13"
+  },
+  "513500": {
+    "last_premium": 3.3,
+    "last_update": "2026-05-13"
+  },
+  "daily_emails_sent": 1,
+  "last_reset_date": "2026-05-13"
 }
