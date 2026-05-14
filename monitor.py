@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 # 配置日志
@@ -158,7 +158,7 @@ def build_email_html(etf_list, is_alert=False):
 
 
 def main():
-    current_time = datetime.now()
+    current_time = datetime.utcnow() + timedelta(hours=8)
     hour = current_time.hour
     minute = current_time.minute
     today = current_time.strftime("%Y-%m-%d")
@@ -189,7 +189,7 @@ def main():
         all_etf_data[code] = etf
         premium = etf["premium"]
 
-        if hour == 9 and minute == 40:
+        if hour == 9 and 35 <= minute <= 55:
             summary_etfs.append(etf)
         elif premium < price_threshold and history["daily_emails_sent"] < 2:
             last_premium = history.get(code, {}).get("last_premium")
