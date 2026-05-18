@@ -168,6 +168,7 @@ def main():
     last_reset = history.get("last_reset_date")
     if last_reset != today:
         history["daily_emails_sent"] = 0
+        history["daily_summary_sent"] = False
         history["last_reset_date"] = today
 
     etf_codes = os.getenv("ETF_CODES", "159501,513500").split(",")
@@ -187,14 +188,20 @@ def main():
             continue
 
         all_etf_data[code] = etf
-        premium = etf["premium"]
 
-        if hour == 9 and 35 <= minute <= 55:
-            summary_etfs.append(etf)
-        elif premium < price_threshold and history["daily_emails_sent"] < 2:
-            last_premium = history.get(code, {}).get("last_premium")
-            if last_premium is None or premium < last_premium:
-                alert_etfs.append(etf)
+    # 每日汇总：9:30 后首次运行发送，不依赖精确时间窗口
+    if not history.get("daily_summary_sent") and (hour > 9 or (hour == 9 and minute >= 30)):
+        if all_etf_data:
+            summary_etfs = list(all_etf_data.values())
+
+    # 溢价警报：仅在未发送汇总时检查
+    if not summary_etfs:
+        for code, etf in all_etf_data.items():
+            premium = etf["premium"]
+            if premium < price_threshold and history["daily_emails_sent"] < 2:
+                last_premium = history.get(code, {}).get("last_premium")
+                if last_premium is None or premium < last_premium:
+                    alert_etfs.append(etf)
 
     if alert_etfs or summary_etfs:
         sender_email = os.getenv("SENDER_EMAIL")
@@ -207,6 +214,8 @@ def main():
         subject = "ETF 溢价率提醒" if is_alert else "ETF 每日汇总"
         send_email(subject, body, sender_email, recipient_email, api_key)
         history["daily_emails_sent"] += 1
+        if summary_etfs:
+            history["daily_summary_sent"] = True
 
     for code, etf in all_etf_data.items():
         if code not in history:
