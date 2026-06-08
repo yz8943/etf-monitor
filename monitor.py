@@ -7,17 +7,17 @@ from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 SOURCE_URL = "https://palmmicro.com/woody/res/qdiicn.php"
 USER_AGENT = "Mozilla/5.0"
 CODE_PATTERN = re.compile(r"^(?:[A-Z]{2})?\d{6}$")
+MONITORED_CODES = ("SZ159501", "SH513500")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
-def load_dotenv_file(path=".env"):
+def load_env_file(path):
     env_path = Path(path)
     if not env_path.exists():
         return
@@ -36,7 +36,23 @@ def load_dotenv_file(path=".env"):
             os.environ.setdefault(key, value)
 
 
-load_dotenv_file()
+for env_file in ("config.env", ".env"):
+    load_env_file(env_file)
+
+
+def filter_monitored_etfs(etf_rows):
+    monitored = [row for row in etf_rows if row.get("code") in MONITORED_CODES]
+    monitored.sort(key=lambda item: MONITORED_CODES.index(item.get("code")))
+    return monitored
+
+
+def prune_history(history):
+    preserved = {
+        key: value
+        for key, value in history.items()
+        if key in {"daily_emails_sent", "daily_summary_sent", "last_reset_date"} or key in MONITORED_CODES
+    }
+    return preserved
 
 
 class TableParser(HTMLParser):
@@ -308,6 +324,7 @@ def main():
     today = current_time.strftime("%Y-%m-%d")
 
     history = load_premium_history()
+    history = prune_history(history)
     last_reset = history.get("last_reset_date")
     if last_reset != today:
         history["daily_emails_sent"] = 0
@@ -316,9 +333,10 @@ def main():
 
     threshold = float(os.getenv("PRICE_THRESHOLD", "3.0"))
     etf_data = get_etf_data()
+    etf_data = filter_monitored_etfs(etf_data)
 
     if not etf_data:
-        logging.warning("No ETF data fetched, nothing to send.")
+        logging.warning("No monitored ETF data fetched, nothing to send.")
         save_premium_history(history)
         return
 
@@ -340,6 +358,20 @@ def main():
         sender_email = os.getenv("SENDER_EMAIL")
         recipient_email = os.getenv("RECIPIENT_EMAIL")
         api_key = os.getenv("MAILS_DEV_API_KEY")
+
+        missing_values = [
+            name
+            for name, value in (
+                ("MAILS_DEV_API_KEY", api_key),
+                ("SENDER_EMAIL", sender_email),
+                ("RECIPIENT_EMAIL", recipient_email),
+            )
+            if not value
+        ]
+        if missing_values:
+            logging.error("Missing required email settings: %s", ", ".join(missing_values))
+            save_premium_history(history)
+            return
 
         is_alert = bool(alert_etfs)
         etf_list = alert_etfs if is_alert else summary_etfs
