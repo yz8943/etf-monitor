@@ -1,5 +1,137 @@
 {
-  "daily_emails_sent": 0,
-  "daily_summary_sent": false,
-  "last_reset_date": "2026-06-08"
+  "daily_emails_sent": 1,
+  "daily_summary_sent": true,
+  "last_reset_date": "2026-06-08",
+  "SH501300": {
+    "last_premium": -0.42,
+    "last_update": "2026-06-08"
+  },
+  "SH513100": {
+    "last_premium": 7.81,
+    "last_update": "2026-06-08"
+  },
+  "SH513110": {
+    "last_premium": 4.77,
+    "last_update": "2026-06-08"
+  },
+  "SH513290": {
+    "last_premium": -0.75,
+    "last_update": "2026-06-08"
+  },
+  "SH513300": {
+    "last_premium": 5.63,
+    "last_update": "2026-06-08"
+  },
+  "SH513350": {
+    "last_premium": 12.83,
+    "last_update": "2026-06-08"
+  },
+  "SH513390": {
+    "last_premium": 5.82,
+    "last_update": "2026-06-08"
+  },
+  "SH513400": {
+    "last_premium": 0.17,
+    "last_update": "2026-06-08"
+  },
+  "SH513500": {
+    "last_premium": 5.97,
+    "last_update": "2026-06-08"
+  },
+  "SH513650": {
+    "last_premium": 2.54,
+    "last_update": "2026-06-08"
+  },
+  "SH513870": {
+    "last_premium": 5.69,
+    "last_update": "2026-06-08"
+  },
+  "SZ159501": {
+    "last_premium": 9.37,
+    "last_update": "2026-06-08"
+  },
+  "SZ159502": {
+    "last_premium": -0.64,
+    "last_update": "2026-06-08"
+  },
+  "SZ159513": {
+    "last_premium": 5.86,
+    "last_update": "2026-06-08"
+  },
+  "SZ159518": {
+    "last_premium": 6.8,
+    "last_update": "2026-06-08"
+  },
+  "SZ159612": {
+    "last_premium": 3.95,
+    "last_update": "2026-06-08"
+  },
+  "SZ159632": {
+    "last_premium": 4.9,
+    "last_update": "2026-06-08"
+  },
+  "SZ159655": {
+    "last_premium": 2.64,
+    "last_update": "2026-06-08"
+  },
+  "SZ159659": {
+    "last_premium": 5.54,
+    "last_update": "2026-06-08"
+  },
+  "SZ159660": {
+    "last_premium": 6.12,
+    "last_update": "2026-06-08"
+  },
+  "SZ159696": {
+    "last_premium": 7.07,
+    "last_update": "2026-06-08"
+  },
+  "SZ159941": {
+    "last_premium": 6.85,
+    "last_update": "2026-06-08"
+  },
+  "SZ160140": {
+    "last_premium": -1.08,
+    "last_update": "2026-06-08"
+  },
+  "SZ160416": {
+    "last_premium": 3.73,
+    "last_update": "2026-06-08"
+  },
+  "SZ161125": {
+    "last_premium": 1.29,
+    "last_update": "2026-06-08"
+  },
+  "SZ161126": {
+    "last_premium": -0.96,
+    "last_update": "2026-06-08"
+  },
+  "SZ161127": {
+    "last_premium": -0.88,
+    "last_update": "2026-06-08"
+  },
+  "SZ161128": {
+    "last_premium": 5.07,
+    "last_update": "2026-06-08"
+  },
+  "SZ161130": {
+    "last_premium": 3.11,
+    "last_update": "2026-06-08"
+  },
+  "SZ162411": {
+    "last_premium": 2.79,
+    "last_update": "2026-06-08"
+  },
+  "SZ162415": {
+    "last_premium": -0.74,
+    "last_update": "2026-06-08"
+  },
+  "SZ162719": {
+    "last_premium": 4.1,
+    "last_update": "2026-06-08"
+  },
+  "SZ164906": {
+    "last_premium": -0.69,
+    "last_update": "2026-06-08"
+  }
 }
