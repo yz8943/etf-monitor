@@ -1,7 +1,7 @@
 {
-  "daily_emails_sent": 1,
-  "daily_summary_sent": true,
-  "last_reset_date": "2026-06-09",
+  "daily_emails_sent": 0,
+  "daily_summary_sent": false,
+  "last_reset_date": "2026-06-10",
   "SH513500": {
     "last_premium": 7.06,
     "last_update": "2026-06-09"
