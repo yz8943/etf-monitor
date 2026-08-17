@@ -1,13 +1,13 @@
 {
   "daily_emails_sent": 1,
   "daily_summary_sent": true,
-  "last_reset_date": "2026-08-14",
+  "last_reset_date": "2026-08-17",
   "SH513500": {
-    "last_premium": 11.76,
-    "last_update": "2026-08-14"
+    "last_premium": 10.86,
+    "last_update": "2026-08-17"
   },
   "SZ159501": {
-    "last_premium": 11.63,
-    "last_update": "2026-08-14"
+    "last_premium": 11.46,
+    "last_update": "2026-08-17"
   }
 }
